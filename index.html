@@ -1,1 +1,28 @@
-<h1>Testi</h1>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Operators Metadata</title>
+</head>
+<body>
+  <h1>Railway Operators Metadata</h1>
+  <pre id="output">Loading …</pre>
+
+  <script>
+    fetch('https://rata.digitraffic.fi/api/v1/metadata/operators')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not OK: ' + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Pretty-print the JSON in the <pre> element
+        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(error => {
+        document.getElementById('output').textContent = 'Error: ' + error;
+      });
+  </script>
+</body>
+</html>
