@@ -1,28 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Operators Metadata</title>
+  <title>Suomen rautateiden operaattorit</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 40px;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #004080;
+      color: white;
+      cursor: pointer;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    .loading, .error {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Railway Operators Metadata</h1>
-  <pre id="output">Loading …</pre>
+  <h1>Suomen Rautateiden operaattorit</h1>
+  <div id="status" class="loading">Loading data…</div>
+  <table id="operator-table" style="display:none;">
+    <thead>
+      <tr>
+        <th data-column="operatorShortCode">Lyhenne</th>
+        <th data-column="operatorName">Operaattorin nimi</th>
+        <th data-column="operatorUICCode">UIC koodi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
+    const status = document.getElementById('status');
+    const table = document.getElementById('operator-table');
+    const tbody = table.querySelector('tbody');
+
+    // Fetch operator metadata
     fetch('https://rata.digitraffic.fi/api/v1/metadata/operators')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not OK: ' + response.status);
-        }
-        return response.json();
-      })
+      .then(response => response.json())
       .then(data => {
-        // Pretty-print the JSON in the <pre> element
-        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        status.style.display = 'none';
+        table.style.display = 'table';
+
+        data.forEach(op => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${op.operatorShortCode || '-'}</td>
+            <td>${op.operatorName || '-'}</td>
+            <td>${op.operatorUICCode || '-'}</td>
+          `;
+          tbody.appendChild(row);
+        });
       })
-      .catch(error => {
-        document.getElementById('output').textContent = 'Error: ' + error;
+      .catch(err => {
+        status.textContent = 'Error loading data: ' + err;
+        status.className = 'error';
       });
+
+    // Optional: sort table by column when header clicked
+    document.querySelectorAll('th').forEach(th => {
+      th.addEventListener('click', () => {
+        const column = th.getAttribute('data-column');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const sorted = rows.sort((a, b) => {
+          const valA = a.children[th.cellIndex].textContent.trim();
+          const valB = b.children[th.cellIndex].textContent.trim();
+          return valA.localeCompare(valB);
+        });
+        tbody.innerHTML = '';
+        sorted.forEach(row => tbody.appendChild(row));
+      });
+    });
   </script>
 </body>
 </html>
